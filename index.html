@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amortly — See Every Dollar's Journey</title>
+  <meta name="description" content="Interactive loan amortization visualizer. Compare interest savings from early payments vs. investing in the market.">
+  <meta property="og:title" content="Amortly — Loan Amortization Visualizer">
+  <meta property="og:description" content="Compare loan scenarios, visualize interest savings, and see if paying extra beats the market.">
+  <meta name="theme-color" content="#0071e3">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="header" id="header">
+  <nav class="nav-container">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 14 L6 8 L9 11 L12 5 L16 14" stroke="white" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="4" r="2" fill="#34c759"/>
+        </svg>
+      </div>
+      <span class="logo-text">Amortly</span>
+    </div>
+    <div class="header-tagline">See every dollar's journey</div>
+    <div class="header-actions">
+      <button class="btn-ghost" id="btn-reset">Reset</button>
+      <button class="btn-primary" id="btn-share">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/>
+          <circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+        Share
+      </button>
+    </div>
+  </nav>
+</header>
+
+<!-- ── Hero ────────────────────────────────────────────────────────────────── -->
+<div class="hero">
+  <h1>Loan Amortization Visualizer</h1>
+  <p>Compare scenarios, visualize interest savings, and decide: pay down faster or invest the difference.</p>
+</div>
+
+<!-- ── Main Layout ─────────────────────────────────────────────────────────── -->
+<main class="main-layout">
+
+  <!-- ══ LEFT: Input Panel ══════════════════════════════════════════════════ -->
+  <aside class="input-panel" id="input-panel">
+
+    <!-- Loan Type -->
+    <div class="panel-section">
+      <div class="segment-control" id="loan-type-toggle">
+        <button class="active" data-value="mortgage">Mortgage</button>
+        <button data-value="generic">Generic Loan</button>
+      </div>
+    </div>
+
+    <!-- Currency -->
+    <div class="panel-section">
+      <div class="input-row-inline">
+        <label class="input-label">Currency</label>
+        <div class="currency-selector">
+          <select id="currency-select" class="select-input"></select>
+          <input type="text" id="custom-symbol" class="hidden" placeholder="$" maxlength="4">
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Loan Details Card ──────────────────────────────────────────────── -->
+    <div class="panel-card">
+      <h3 class="card-title">Loan Details</h3>
+
+      <div class="input-group">
+        <label class="input-label" id="home-price-label">Home Price</label>
+        <div class="input-with-symbol">
+          <span class="currency-symbol" id="sym-home-price">$</span>
+          <input type="number" id="home-price" class="number-input" value="500000" min="0" step="1000">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <div class="label-row">
+          <label class="input-label" id="down-payment-label">Down Payment</label>
+          <span class="label-right" id="dp-percent-display">20.0%</span>
+        </div>
+        <div class="input-with-symbol">
+          <span class="currency-symbol" id="sym-down-payment">$</span>
+          <input type="number" id="down-payment" class="number-input" value="100000" min="0">
+        </div>
+        <div class="slider-container">
+          <input type="range" id="dp-slider" min="0" max="60" step="0.5" value="20">
+          <div class="slider-labels"><span>0%</span><span>60%</span></div>
+        </div>
+        <!-- Equity bar -->
+        <div class="dp-impact-bar">
+          <div class="dp-impact-label">
+            <span>Down Payment</span><span>Loan Amount</span>
+          </div>
+          <div class="dp-visual-bar">
+            <div class="dp-bar-fill" id="dp-bar-fill" style="width:20%"></div>
+          </div>
+        </div>
+        <!-- DP impact comparison cards -->
+        <div class="dp-impact-cards" id="dp-impact-cards"></div>
+      </div>
+
+      <div class="input-group computed-group">
+        <label class="input-label">Loan Amount</label>
+        <div class="computed-value" id="loan-amount-display">$400,000</div>
+      </div>
+    </div>
+
+    <!-- ── Interest Rate Card ─────────────────────────────────────────────── -->
+    <div class="panel-card">
+      <h3 class="card-title">Interest Rate</h3>
+      <div class="rate-display-large">
+        <span id="rate-value-display">6.50</span>
+        <span class="rate-unit">%</span>
+      </div>
+      <div class="slider-container">
+        <input type="range" id="rate-slider" min="0.5" max="20" step="0.05" value="6.5">
+        <div class="slider-labels"><span>0.5%</span><span>20%</span></div>
+      </div>
+      <!-- Rate comparison pills -->
+      <div>
+        <div class="input-label" style="margin-bottom:8px">Rate Impact</div>
+        <div class="rate-comparison-pills" id="rate-comparison-pills"></div>
+      </div>
+    </div>
+
+    <!-- ── Loan Term Card ─────────────────────────────────────────────────── -->
+    <div class="panel-card">
+      <h3 class="card-title">Loan Term</h3>
+      <div class="term-display-large">
+        <span id="term-value-display">30</span>
+        <span class="term-unit"> years</span>
+      </div>
+      <div class="slider-container">
+        <input type="range" id="term-slider" min="1" max="30" step="1" value="30">
+        <div class="slider-labels"><span>1 yr</span><span>30 yrs</span></div>
+      </div>
+      <div class="term-presets">
+        <button class="preset-pill" data-years="10">10y</button>
+        <button class="preset-pill" data-years="15">15y</button>
+        <button class="preset-pill" data-years="20">20y</button>
+        <button class="preset-pill active" data-years="30">30y</button>
+      </div>
+    </div>
+
+    <!-- ── Payment Schedule Card ──────────────────────────────────────────── -->
+    <div class="panel-card">
+      <h3 class="card-title">Payment Schedule</h3>
+      <div class="input-group">
+        <label class="input-label">Compound Period</label>
+        <select id="compound-period" class="select-input"></select>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Payment Frequency</label>
+        <select id="payment-period" class="select-input"></select>
+      </div>
+    </div>
+
+    <!-- ── Extra Payments Card ────────────────────────────────────────────── -->
+    <div class="panel-card">
+      <h3 class="card-title">Extra Payments</h3>
+      <div class="segment-control" id="extra-type-toggle">
+        <button class="active" data-value="none">None</button>
+        <button data-value="onetime">One-time</button>
+        <button data-value="regular">Regular</button>
+      </div>
+
+      <!-- One-time -->
+      <div class="extra-section hidden" id="extra-onetime-section">
+        <div class="input-group">
+          <label class="input-label">Extra Amount</label>
+          <div class="input-with-symbol">
+            <span class="currency-symbol">$</span>
+            <input type="number" id="extra-onetime-amount" class="number-input" value="10000" min="0">
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Apply at Payment #</label>
+          <input type="number" id="extra-onetime-period" class="number-input"
+                 style="padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+                        font-family:var(--font);font-size:15px;outline:none;width:100%;background:var(--bg)"
+                 value="1" min="1">
+        </div>
+      </div>
+
+      <!-- Regular -->
+      <div class="extra-section hidden" id="extra-regular-section">
+        <div class="input-group">
+          <label class="input-label">Extra Amount</label>
+          <div class="input-with-symbol">
+            <span class="currency-symbol">$</span>
+            <input type="number" id="extra-regular-amount" class="number-input" value="500" min="0">
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Frequency</label>
+          <select id="extra-regular-frequency" class="select-input">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly" selected>Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Market Comparison Card ─────────────────────────────────────────── -->
+    <div class="panel-card">
+      <h3 class="card-title">Market Comparison</h3>
+      <p class="card-subtitle">vs. investing your extra payments</p>
+      <div class="segment-control" id="market-mode-toggle">
+        <button class="active" data-value="historical">Historical S&amp;P</button>
+        <button data-value="simple">Risk Profile</button>
+      </div>
+
+      <!-- Historical S&P -->
+      <div class="market-section" id="market-historical-section">
+        <div class="input-group">
+          <label class="input-label">Decade</label>
+          <select id="decade-select" class="select-input"></select>
+        </div>
+        <div id="decade-info"></div>
+      </div>
+
+      <!-- Simple Risk Profile -->
+      <div class="market-section hidden" id="market-simple-section">
+        <div id="risk-profiles"></div>
+      </div>
+    </div>
+
+  </aside>
+  <!-- ── end input panel ────────────────────────────────────────────────── -->
+
+
+  <!-- ══ RIGHT: Results Panel ════════════════════════════════════════════════ -->
+  <div class="results-panel">
+
+    <!-- Summary Cards -->
+    <div class="summary-cards-grid">
+      <div class="metric-card">
+        <div class="metric-label">Payment Amount</div>
+        <div class="metric-value" id="metric-monthly-payment">—</div>
+        <div class="metric-sub" id="metric-payment-freq">per month</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Total Paid</div>
+        <div class="metric-value" id="metric-total-paid">—</div>
+        <div class="metric-sub" id="metric-num-payments">— payments</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Total Interest</div>
+        <div class="metric-value accent-red" id="metric-total-interest">—</div>
+        <div class="metric-sub" id="metric-interest-pct">— of loan</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Payoff Date</div>
+        <div class="metric-value" id="metric-payoff-date">—</div>
+        <div class="metric-sub" id="metric-payoff-months">—</div>
+      </div>
+    </div>
+
+    <!-- Extra Payment Impact Banner (shown when active) -->
+    <div class="impact-banner hidden" id="extra-impact-banner">
+      <div class="impact-item">
+        <div class="impact-label">Interest Saved</div>
+        <div class="impact-value accent-green" id="impact-interest-saved">—</div>
+      </div>
+      <div class="impact-divider"></div>
+      <div class="impact-item">
+        <div class="impact-label">Time Saved</div>
+        <div class="impact-value accent-green" id="impact-time-saved">—</div>
+      </div>
+      <div class="impact-divider"></div>
+      <div class="impact-item">
+        <div class="impact-label">New Payoff Date</div>
+        <div class="impact-value" id="impact-new-payoff">—</div>
+      </div>
+      <div class="impact-divider"></div>
+      <div class="impact-item">
+        <div class="impact-label">New Payment</div>
+        <div class="impact-value" id="impact-new-payment">—</div>
+      </div>
+    </div>
+
+    <!-- Chart 1: Amortization Schedule -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">Amortization Schedule</h3>
+        <p class="chart-subtitle">Annual breakdown of principal, interest, and extra payments</p>
+      </div>
+      <div class="chart-container">
+        <canvas id="chart-amortization"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 2: Loan Balance Over Time -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">Remaining Balance</h3>
+        <p class="chart-subtitle">Loan paydown trajectory — with and without extra payments</p>
+      </div>
+      <div class="chart-container">
+        <canvas id="chart-balance"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 3: Rate Comparison -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">Rate Comparison</h3>
+        <p class="chart-subtitle">Cumulative interest paid at current rate ± 0.5% and ± 1%</p>
+      </div>
+      <div class="chart-container">
+        <canvas id="chart-rates"></canvas>
+      </div>
+      <div id="rate-table"></div>
+    </div>
+
+    <!-- Chart 4: Pay Down vs. Invest -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">Pay Down vs. Invest</h3>
+        <p class="chart-subtitle">
+          If you invested extra payments instead — interest saved vs. market return potential
+        </p>
+      </div>
+      <div class="chart-container">
+        <canvas id="chart-market"></canvas>
+      </div>
+      <div id="market-comparison-stats">
+        <div class="market-stats-placeholder">
+          <p>Add extra payments above to see the <strong>pay-down vs. invest</strong> comparison.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- ── end results panel ──────────────────────────────────────────────── -->
+
+</main>
+
+<!-- ── Share Modal ─────────────────────────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="share-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Share This Scenario</h3>
+      <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+    </div>
+    <p class="modal-text">
+      Anyone with this link will see your exact loan scenario — inputs, extra payments, and market settings.
+    </p>
+    <div class="share-url-container">
+      <input type="text" id="share-url-input" class="share-url-input" readonly aria-label="Share URL">
+      <button class="btn-primary" id="btn-copy-url">Copy</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ────────────────────────────────────────────────────────────────── -->
+<div class="toast hidden" id="toast" role="status">
+  <span id="toast-message">Copied!</span>
+</div>
+
+<!-- ── Footer ───────────────────────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="footer-content">
+    <span>Amortly &mdash; See every dollar's journey</span>
+    <span class="footer-note">For educational purposes only. Not financial advice.</span>
+  </div>
+</footer>
+
+<!-- ── Scripts (order matters) ──────────────────────────────────────────────── -->
+<script src="js/data.js"></script>
+<script src="js/amortization.js"></script>
+<script src="js/market.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
