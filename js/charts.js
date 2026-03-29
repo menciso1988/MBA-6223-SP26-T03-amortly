@@ -121,14 +121,15 @@ function initAmortizationChart() {
 
 function updateAmortizationChart(yearly, yearlyExtra) {
   const chart = charts.amortization;
-  const labels = yearly.map(r => `Yr ${r.year}`);
+  const source = yearlyExtra || yearly;
+  const labels = source.map(r => `Yr ${r.year}`);
   chart.data.labels = labels;
-  chart.data.datasets[0].data = yearly.map(r => r.principal);
-  chart.data.datasets[1].data = yearly.map(r => r.interest);
-  chart.data.datasets[2].data = yearly.map(r => r.extra || 0);
+  chart.data.datasets[0].data = source.map(r => r.principal);
+  chart.data.datasets[1].data = source.map(r => r.interest);
+  chart.data.datasets[2].data = source.map(r => r.extra || 0);
 
   // Hide extra dataset if zero
-  const hasExtra = yearly.some(r => (r.extra || 0) > 0);
+  const hasExtra = source.some(r => (r.extra || 0) > 0);
   chart.data.datasets[2].hidden = !hasExtra;
 
   chart.update('active');
