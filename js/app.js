@@ -15,6 +15,7 @@ let state = {
   extraOneTimePeriod: 1,
   extraRegularAmount: 500,
   extraRegularFrequency: 'monthly',
+  extraStartDate: '',
   loanStartDate: '',
   marketMode: 'historical',
   decade: 'historical',
@@ -145,6 +146,21 @@ function updateDpImpactCards() {
     `;
     container.appendChild(div);
   });
+}
+
+/**
+ * Convert an extra payment date to a 1-based period number relative to the loan start.
+ * Returns 1 if no date is set (defaults to loan start = period 1).
+ */
+function dateToPeriod(extraDateStr, loanStartDateStr, paymentPeriods) {
+  if (!extraDateStr) return 1;
+  const start = loanStartDateStr ? new Date(loanStartDateStr + 'T00:00:00') : new Date();
+  const target = new Date(extraDateStr + 'T00:00:00');
+  if (target <= start) return 1;
+  const monthsDiff = (target.getFullYear() - start.getFullYear()) * 12
+                   + (target.getMonth() - start.getMonth());
+  const periods = Math.round(monthsDiff * paymentPeriods / 12);
+  return Math.max(1, periods + 1);
 }
 
 function paymentLabel() {
@@ -330,13 +346,16 @@ function recalculate() {
     extraType: 'none'
   };
 
+  const extraStartPeriod = dateToPeriod(state.extraStartDate, state.loanStartDate, state.paymentPeriods);
+
   const extraParams = {
     ...baseParams,
     extraType: state.extraType,
     extraOneTimeAmount: state.extraOneTimeAmount,
     extraOneTimePeriod: state.extraOneTimePeriod,
     extraRegularAmount: state.extraRegularAmount,
-    extraRegularFrequency: state.extraRegularFrequency
+    extraRegularFrequency: state.extraRegularFrequency,
+    extraStartPeriod
   };
 
   const base  = buildAmortizationSchedule(baseParams);
@@ -565,6 +584,7 @@ function bindEvents() {
   // Extra payment type
   bindSegmentControl('extra-type-toggle', val => {
     state.extraType = val;
+    toggleClass('extra-start-date-section', 'hidden', val === 'none');
     toggleClass('extra-onetime-section', 'hidden', val !== 'onetime');
     toggleClass('extra-regular-section', 'hidden', val !== 'regular');
     recalculate();
@@ -586,8 +606,13 @@ function bindEvents() {
     state.extraRegularFrequency = e.target.value;
     recalculate();
   });
+  el('extra-start-date').addEventListener('change', e => {
+    state.extraStartDate = e.target.value;
+    recalculate();
+  });
   el('loan-start-date').addEventListener('change', e => {
     state.loanStartDate = e.target.value;
+    el('extra-start-date').placeholder = e.target.value || 'Loan start date';
     recalculate();
   });
 
@@ -706,6 +731,8 @@ function populateFromState() {
   el('extra-onetime-period').value  = state.extraOneTimePeriod;
   el('extra-regular-amount').value  = state.extraRegularAmount;
   el('extra-regular-frequency').value = state.extraRegularFrequency;
+  el('extra-start-date').value = state.extraStartDate || '';
+  el('extra-start-date').placeholder = state.loanStartDate || 'Loan start date';
   el('loan-start-date').value = state.loanStartDate || '';
   el('decade-select').value  = state.decade;
   el('currency-select').value = state.currency.code;
@@ -728,6 +755,7 @@ function populateFromState() {
   setActiveSegment('market-mode-toggle', state.marketMode);
 
   // Extra sections visibility
+  toggleClass('extra-start-date-section', 'hidden', state.extraType === 'none');
   toggleClass('extra-onetime-section', 'hidden', state.extraType !== 'onetime');
   toggleClass('extra-regular-section', 'hidden', state.extraType !== 'regular');
   toggleClass('market-historical-section', 'hidden', state.marketMode !== 'historical');

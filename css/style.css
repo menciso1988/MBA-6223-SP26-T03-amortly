@@ -355,6 +355,12 @@ body {
 }
 .date-input:focus { border-color: var(--blue); }
 
+.input-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
 .computed-group {
   padding-top: 10px;
   border-top: 1px solid var(--border);

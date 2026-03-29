@@ -63,17 +63,20 @@ function buildAmortizationSchedule(p) {
   const {
     principal, annualRate, compoundPeriods, paymentPeriods, termYears,
     extraType, extraOneTimeAmount, extraOneTimePeriod,
-    extraRegularAmount, extraRegularFrequency
+    extraRegularAmount, extraRegularFrequency,
+    extraStartPeriod
   } = p;
+
+  const startPeriod = Math.max(1, extraStartPeriod || 1);
 
   const rate = effectivePeriodicRate(annualRate, compoundPeriods, paymentPeriods);
   const totalPeriods = Math.round(termYears * paymentPeriods);
   const fixedPayment = calculatePMT(principal, rate, totalPeriods);
 
-  // Pre-compute extra per period
-  let regularExtraPerPeriod = 0;
+  // Pre-compute regular extra per period
+  let baseRegularExtra = 0;
   if (extraType === 'regular') {
-    regularExtraPerPeriod = normalizeExtraPayment(
+    baseRegularExtra = normalizeExtraPayment(
       extraRegularAmount,
       extraRegularFrequency,
       paymentPeriods
@@ -82,7 +85,8 @@ function buildAmortizationSchedule(p) {
 
   const oneTimeExtra = {};
   if (extraType === 'onetime' && extraOneTimeAmount > 0) {
-    const period = Math.max(1, Math.round(extraOneTimePeriod));
+    // Use extraStartPeriod as the one-time payment period
+    const period = startPeriod;
     oneTimeExtra[period] = extraOneTimeAmount;
   }
 
@@ -96,6 +100,9 @@ function buildAmortizationSchedule(p) {
   for (let i = 1; i <= totalPeriods && balance > 0.005; i++) {
     const interestPayment = balance * rate;
     let principalPayment = fixedPayment - interestPayment;
+
+    // Regular extra only applies from startPeriod onwards
+    const regularExtraPerPeriod = (extraType === 'regular' && i >= startPeriod) ? baseRegularExtra : 0;
 
     // Extra principal this period
     const extra = (oneTimeExtra[i] || 0) + regularExtraPerPeriod;

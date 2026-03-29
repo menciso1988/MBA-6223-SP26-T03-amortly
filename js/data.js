@@ -149,6 +149,7 @@ const DEFAULTS = {
   extraOneTimePeriod: 1,
   extraRegularAmount: 500,
   extraRegularFrequency: 'monthly',
+  extraStartDate: '',
   loanStartDate: '',
   marketMode: 'historical',
   decade: 'historical',

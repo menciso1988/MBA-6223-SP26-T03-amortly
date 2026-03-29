@@ -184,6 +184,15 @@
         <button data-value="regular">Regular</button>
       </div>
 
+      <!-- Shared: Extra Payment Start Date (shown for onetime + regular) -->
+      <div class="extra-section hidden" id="extra-start-date-section">
+        <div class="input-group">
+          <label class="input-label">Extra Payments Start Date</label>
+          <input type="date" id="extra-start-date" class="date-input">
+          <div class="input-hint">Leave blank to start from loan start date</div>
+        </div>
+      </div>
+
       <!-- One-time -->
       <div class="extra-section hidden" id="extra-onetime-section">
         <div class="input-group">
@@ -192,13 +201,6 @@
             <span class="currency-symbol">$</span>
             <input type="number" id="extra-onetime-amount" class="number-input" value="10000" min="0">
           </div>
-        </div>
-        <div class="input-group">
-          <label class="input-label">Apply at Payment #</label>
-          <input type="number" id="extra-onetime-period" class="number-input"
-                 style="padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);
-                        font-family:var(--font);font-size:15px;outline:none;width:100%;background:var(--bg)"
-                 value="1" min="1">
         </div>
       </div>
 
