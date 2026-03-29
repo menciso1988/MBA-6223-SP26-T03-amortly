@@ -435,6 +435,29 @@ input[type="range"]::-moz-range-thumb {
   color: var(--text-secondary);
 }
 
+/* Editable large display inputs (rate & term) */
+.display-input {
+  width: 3.4ch;
+  min-width: 2ch;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  font-family: var(--font);
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  padding: 0;
+  transition: border-color 0.2s var(--ease);
+  -moz-appearance: textfield;
+}
+.display-input::-webkit-inner-spin-button,
+.display-input::-webkit-outer-spin-button { display: none; }
+.display-input:hover  { border-bottom-color: var(--border-strong); }
+.display-input:focus  { border-bottom-color: var(--blue); }
+
 /* ── Term Presets ──────────────────────────────────────────────────────────── */
 .term-presets { display: flex; gap: 6px; }
 .preset-pill {

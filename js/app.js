@@ -507,16 +507,33 @@ function bindEvents() {
   // Rate slider
   el('rate-slider').addEventListener('input', e => {
     state.annualRate = parseFloat(e.target.value);
-    setTextContent('rate-value-display', state.annualRate.toFixed(2));
+    el('rate-value-display').value = state.annualRate.toFixed(2);
     syncSliderFill(e.target);
+    recalculate();
+  });
+  el('rate-value-display').addEventListener('input', e => {
+    const val = parseFloat(e.target.value);
+    if (isNaN(val) || val <= 0) return;
+    state.annualRate = Math.min(30, Math.max(0.1, val));
+    el('rate-slider').value = Math.min(20, Math.max(0.5, state.annualRate));
+    syncSliderFill(el('rate-slider'));
     recalculate();
   });
 
   // Term slider
   el('term-slider').addEventListener('input', e => {
     state.termYears = parseInt(e.target.value);
-    setTextContent('term-value-display', state.termYears);
+    el('term-value-display').value = state.termYears;
     syncSliderFill(e.target);
+    updateTermPresets();
+    recalculate();
+  });
+  el('term-value-display').addEventListener('input', e => {
+    const val = parseInt(e.target.value);
+    if (isNaN(val) || val <= 0) return;
+    state.termYears = Math.min(50, Math.max(1, val));
+    el('term-slider').value = Math.min(30, Math.max(1, state.termYears));
+    syncSliderFill(el('term-slider'));
     updateTermPresets();
     recalculate();
   });
@@ -527,7 +544,7 @@ function bindEvents() {
       state.termYears = parseInt(btn.dataset.years);
       el('term-slider').value = state.termYears;
       syncSliderFill(el('term-slider'));
-      setTextContent('term-value-display', state.termYears);
+      el('term-value-display').value = state.termYears;
       updateTermPresets();
       recalculate();
     });
@@ -693,8 +710,8 @@ function populateFromState() {
   el('decade-select').value  = state.decade;
   el('currency-select').value = state.currency.code;
 
-  setTextContent('rate-value-display', state.annualRate.toFixed(2));
-  setTextContent('term-value-display', state.termYears);
+  el('rate-value-display').value = state.annualRate.toFixed(2);
+  el('term-value-display').value = state.termYears;
   updateDpPercentDisplay();
   updateLoanAmountDisplay();
   updateDpBar();
