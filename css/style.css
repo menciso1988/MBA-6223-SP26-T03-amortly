@@ -94,18 +94,18 @@ body {
   text-decoration: none;
 }
 .logo-icon {
-  width: 30px;
-  height: 30px;
+  width: 35px;
+  height: 35px;
   background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
-  border-radius: 8px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-.logo-icon svg { width: 18px; height: 18px; }
+.logo-icon svg { width: 21px; height: 21px; }
 .logo-text {
-  font-size: 18px;
+  font-size: 21px;
   font-weight: 700;
   letter-spacing: -0.5px;
   background: linear-gradient(135deg, var(--blue), var(--purple));
@@ -340,6 +340,20 @@ body {
   padding-right: 32px;
 }
 .select-input:focus { border-color: var(--blue); }
+
+.date-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.date-input:focus { border-color: var(--blue); }
 
 .computed-group {
   padding-top: 10px;

@@ -161,9 +161,9 @@ function periodsToString(periods, periodsPerYear) {
  * @param {number} totalMonths
  * @returns {string}  Formatted date string
  */
-function payoffDate(periods, periodsPerYear) {
+function payoffDate(periods, periodsPerYear, startDateStr) {
   const months = Math.round((periods / periodsPerYear) * 12);
-  const d = new Date();
+  const d = startDateStr ? new Date(startDateStr + 'T00:00:00') : new Date();
   d.setMonth(d.getMonth() + months);
   return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }

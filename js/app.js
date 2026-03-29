@@ -15,6 +15,7 @@ let state = {
   extraOneTimePeriod: 1,
   extraRegularAmount: 500,
   extraRegularFrequency: 'monthly',
+  loanStartDate: '',
   marketMode: 'historical',
   decade: 'historical',
   riskProfile: 'moderate'
@@ -363,7 +364,7 @@ function recalculate() {
 
   const interestPct = principal > 0 ? (base.totalInterestPaid / principal * 100).toFixed(1) : 0;
   setTextContent('metric-interest-pct', `${interestPct}% of loan`);
-  setTextContent('metric-payoff-date', payoffDate(base.actualPeriods, state.paymentPeriods));
+  setTextContent('metric-payoff-date', payoffDate(base.actualPeriods, state.paymentPeriods, state.loanStartDate));
   setTextContent('metric-payoff-months', periodsToString(base.actualPeriods, state.paymentPeriods));
 
   // ── Extra Payment Impact Banner ──
@@ -374,7 +375,7 @@ function recalculate() {
     showEl('extra-impact-banner');
     setTextContent('impact-interest-saved', fmt(saved));
     setTextContent('impact-time-saved', periodsToString(periodsSaved, state.paymentPeriods));
-    setTextContent('impact-new-payoff', payoffDate(extra.actualPeriods, state.paymentPeriods));
+    setTextContent('impact-new-payoff', payoffDate(extra.actualPeriods, state.paymentPeriods, state.loanStartDate));
     setTextContent('impact-new-payment', `${fmt(extra.fixedPayment + (state.extraType === 'regular'
       ? (state.extraRegularAmount * (EXTRA_FREQ_MAP[state.extraRegularFrequency] || 12) / state.paymentPeriods)
       : 0))} / ${pmtLabel}`);
@@ -568,6 +569,10 @@ function bindEvents() {
     state.extraRegularFrequency = e.target.value;
     recalculate();
   });
+  el('loan-start-date').addEventListener('change', e => {
+    state.loanStartDate = e.target.value;
+    recalculate();
+  });
 
   // Market mode
   bindSegmentControl('market-mode-toggle', val => {
@@ -684,6 +689,7 @@ function populateFromState() {
   el('extra-onetime-period').value  = state.extraOneTimePeriod;
   el('extra-regular-amount').value  = state.extraRegularAmount;
   el('extra-regular-frequency').value = state.extraRegularFrequency;
+  el('loan-start-date').value = state.loanStartDate || '';
   el('decade-select').value  = state.decade;
   el('currency-select').value = state.currency.code;
 
