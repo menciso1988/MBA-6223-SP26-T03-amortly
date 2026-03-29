@@ -594,10 +594,6 @@ function bindEvents() {
     state.extraOneTimeAmount = parseFloat(e.target.value) || 0;
     recalculate();
   });
-  el('extra-onetime-period').addEventListener('input', e => {
-    state.extraOneTimePeriod = parseInt(e.target.value) || 1;
-    recalculate();
-  });
   el('extra-regular-amount').addEventListener('input', e => {
     state.extraRegularAmount = parseFloat(e.target.value) || 0;
     recalculate();
@@ -728,7 +724,6 @@ function populateFromState() {
   el('compound-period').value = state.compoundPeriods;
   el('payment-period').value  = state.paymentPeriods;
   el('extra-onetime-amount').value  = state.extraOneTimeAmount;
-  el('extra-onetime-period').value  = state.extraOneTimePeriod;
   el('extra-regular-amount').value  = state.extraRegularAmount;
   el('extra-regular-frequency').value = state.extraRegularFrequency;
   el('extra-start-date').value = state.extraStartDate || '';
