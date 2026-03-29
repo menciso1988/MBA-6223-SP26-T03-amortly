@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amortly — Icon Generator</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      background: #f5f5f7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      gap: 32px;
+      padding: 40px 20px;
+    }
+    h1 { font-size: 24px; font-weight: 700; color: #1d1d1f; margin: 0; }
+    p  { font-size: 15px; color: #6e6e73; margin: 0; text-align: center; max-width: 440px; }
+    .previews { display: flex; gap: 32px; align-items: flex-end; flex-wrap: wrap; justify-content: center; }
+    .preview  { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .preview span { font-size: 12px; color: #86868b; }
+    canvas { border-radius: 22.5%; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    .buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    button {
+      padding: 12px 24px;
+      background: #0071e3;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: #0077ed; }
+    .instructions {
+      background: white;
+      border-radius: 16px;
+      padding: 24px 28px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .instructions h2 { font-size: 16px; margin: 0 0 12px; }
+    .instructions ol  { margin: 0; padding-left: 20px; }
+    .instructions li  { font-size: 14px; color: #3a3a3c; margin-bottom: 8px; line-height: 1.5; }
+    code {
+      background: #f0f0f5;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 13px;
+      font-family: 'SF Mono', Menlo, monospace;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Amortly Icon Generator</h1>
+<p>Generate the PNG icons needed for the iPhone home screen app icon.</p>
+
+<div class="previews">
+  <div class="preview">
+    <canvas id="canvas-512" width="512" height="512"></canvas>
+    <span>512 × 512</span>
+  </div>
+  <div class="preview">
+    <canvas id="canvas-180" width="180" height="180" style="border-radius:20%"></canvas>
+    <span>180 × 180 (iPhone)</span>
+  </div>
+  <div class="preview">
+    <canvas id="canvas-60" width="60" height="60" style="border-radius:18%"></canvas>
+    <span>60 × 60 (preview)</span>
+  </div>
+</div>
+
+<div class="buttons">
+  <button onclick="download(512, 'icon-512.png')">Download icon-512.png</button>
+  <button onclick="download(180, 'apple-touch-icon.png')">Download apple-touch-icon.png</button>
+</div>
+
+<div class="instructions">
+  <h2>After downloading both files:</h2>
+  <ol>
+    <li>Move both PNG files into the <code>amortly/icons/</code> folder</li>
+    <li>Open your terminal in the <code>amortly</code> folder and run:<br>
+      <code>git add icons/ && git commit -m "Add app icons" && git push</code>
+    </li>
+    <li>On your iPhone, open Safari and go to your GitHub Pages URL</li>
+    <li>Tap the <strong>Share</strong> button (box with arrow) → <strong>Add to Home Screen</strong></li>
+    <li>Tap <strong>Add</strong> — Amortly will appear on your home screen with this icon</li>
+  </ol>
+</div>
+
+<script>
+  function drawIcon(canvas) {
+    const size = canvas.width;
+    const ctx = canvas.getContext('2d');
+
+    // Background gradient (blue → purple, diagonal)
+    const grad = ctx.createLinearGradient(0, 0, size, size);
+    grad.addColorStop(0, '#0071e3');
+    grad.addColorStop(1, '#5e5ce6');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+
+    // Scale from the 18×18 SVG viewBox
+    // Drawing area: 65% of icon size, centered
+    const drawSize = size * 0.65;
+    const pad = (size - drawSize) / 2;
+    const s = drawSize / 18; // scale factor
+
+    function px(x) { return pad + x * s; }
+    function py(y) { return pad + y * s; }
+
+    // Chart line: M2,14 L6,8 L9,11 L12,5 L16,14
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = size * 0.055;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(px(2),  py(14));
+    ctx.lineTo(px(6),  py(8));
+    ctx.lineTo(px(9),  py(11));
+    ctx.lineTo(px(12), py(5));
+    ctx.lineTo(px(16), py(14));
+    ctx.stroke();
+
+    // Green dot at peak (16, 4)
+    ctx.fillStyle = '#34c759';
+    ctx.beginPath();
+    ctx.arc(px(16), py(4), s * 2.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function download(size, filename) {
+    const id = `canvas-${size}`;
+    const canvas = document.getElementById(id) || document.createElement('canvas');
+    if (!document.getElementById(id)) {
+      canvas.width = size;
+      canvas.height = size;
+      drawIcon(canvas);
+    }
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+
+  // Draw all preview canvases on load
+  ['canvas-512', 'canvas-180', 'canvas-60'].forEach(id => {
+    drawIcon(document.getElementById(id));
+  });
+</script>
+</body>
+</html>
