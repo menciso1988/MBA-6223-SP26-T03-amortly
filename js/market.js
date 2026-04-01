@@ -104,32 +104,56 @@ function calculateMarketComparison(extraSchedule, baseSchedule, marketMode, deca
   const scenarios = getMarketScenarios(marketMode, decade, riskProfile);
   const periodsPerYear = baseSchedule.paymentPeriods;
 
-  // The extra payment per period (approximated as average extra over actual periods)
-  const avgExtraPerPeriod = extraSchedule.schedule.reduce((sum, r) => sum + r.extra, 0)
-    / extraSchedule.schedule.length;
-
   // Horizon = original loan term (base schedule length)
   const basePeriods = baseSchedule.actualPeriods;
 
-  const marketLow  = futureValueAnnuity(avgExtraPerPeriod, scenarios.low,  basePeriods, periodsPerYear);
-  const marketBase = futureValueAnnuity(avgExtraPerPeriod, scenarios.base, basePeriods, periodsPerYear);
-  const marketHigh = futureValueAnnuity(avgExtraPerPeriod, scenarios.high, basePeriods, periodsPerYear);
+  // Build the actual extra-payment stream for the full base loan horizon.
+  // Periods beyond the (shorter) extra schedule are zero — no more payments once the loan is paid off.
+  // This preserves the exact timing of one-time lump sums and the start-date delay for regular payments.
+  const extraStream = new Array(basePeriods).fill(0);
+  for (let i = 0; i < Math.min(extraSchedule.schedule.length, basePeriods); i++) {
+    extraStream[i] = extraSchedule.schedule[i].extra;
+  }
+
+  // Period-by-period FV simulation: fv[i] = fv[i-1] * (1+r) + extraStream[i]
+  // This correctly compounds a lump sum from its payment period and delays regular
+  // investments until their start date.
+  function simulateFV(annualRate) {
+    const r = annualRate / 100 / periodsPerYear;
+    const series = [];
+    let fv = 0;
+    for (let i = 0; i < basePeriods; i++) {
+      fv = fv * (1 + r) + extraStream[i];
+      series.push(fv);
+    }
+    return series;
+  }
+
+  const seriesLow  = simulateFV(scenarios.low);
+  const seriesBase = simulateFV(scenarios.base);
+  const seriesHigh = simulateFV(scenarios.high);
 
   // Time series for charting (yearly snapshots)
   const yearsCount = Math.ceil(basePeriods / periodsPerYear);
-  const yearlyBase = [], yearlyLow = [], yearlyHigh = [];
+  const yearlyLow = [], yearlyBase = [], yearlyHigh = [];
+  const cumulativeContributions = [];
+  let cumExtra = 0;
+
   for (let yr = 1; yr <= yearsCount; yr++) {
-    const p = yr * periodsPerYear;
-    yearlyLow.push( futureValueAnnuity(avgExtraPerPeriod, scenarios.low,  p, periodsPerYear));
-    yearlyBase.push(futureValueAnnuity(avgExtraPerPeriod, scenarios.base, p, periodsPerYear));
-    yearlyHigh.push(futureValueAnnuity(avgExtraPerPeriod, scenarios.high, p, periodsPerYear));
+    const idx = Math.min(yr * periodsPerYear - 1, basePeriods - 1);
+    yearlyLow.push(seriesLow[idx]);
+    yearlyBase.push(seriesBase[idx]);
+    yearlyHigh.push(seriesHigh[idx]);
+
+    // Accumulate cost basis up to this year-end index
+    const prevIdx = (yr - 1) * periodsPerYear;
+    for (let i = prevIdx; i <= idx; i++) cumExtra += extraStream[i];
+    cumulativeContributions.push(cumExtra);
   }
 
-  // Cumulative extra contributions (cost basis) over base horizon
-  const cumulativeContributions = [];
-  for (let yr = 1; yr <= yearsCount; yr++) {
-    cumulativeContributions.push(avgExtraPerPeriod * yr * periodsPerYear);
-  }
+  const marketLow  = yearlyLow[yearlyLow.length - 1]   || 0;
+  const marketBase = yearlyBase[yearlyBase.length - 1] || 0;
+  const marketHigh = yearlyHigh[yearlyHigh.length - 1] || 0;
 
   return {
     interestSaved,
