@@ -121,16 +121,22 @@ function initAmortizationChart() {
 
 function updateAmortizationChart(yearly, yearlyExtra) {
   const chart = charts.amortization;
-  const source = yearlyExtra || yearly;
-  const labels = source.map(r => `Yr ${r.year}`);
+  // Always use base yearly for labels so the x-axis matches the full loan term
+  const labels = yearly.map(r => `Yr ${r.year}`);
   chart.data.labels = labels;
-  chart.data.datasets[0].data = source.map(r => r.principal);
-  chart.data.datasets[1].data = source.map(r => r.interest);
-  chart.data.datasets[2].data = source.map(r => r.extra || 0);
 
-  // Hide extra dataset if zero
-  const hasExtra = source.some(r => (r.extra || 0) > 0);
-  chart.data.datasets[2].hidden = !hasExtra;
+  if (yearlyExtra) {
+    // Pad extra data to base length so bars show 0 after early payoff
+    chart.data.datasets[0].data = yearly.map((_, i) => yearlyExtra[i] ? yearlyExtra[i].principal : 0);
+    chart.data.datasets[1].data = yearly.map((_, i) => yearlyExtra[i] ? yearlyExtra[i].interest  : 0);
+    chart.data.datasets[2].data = yearly.map((_, i) => yearlyExtra[i] ? (yearlyExtra[i].extra || 0) : 0);
+    chart.data.datasets[2].hidden = !yearlyExtra.some(r => (r.extra || 0) > 0);
+  } else {
+    chart.data.datasets[0].data = yearly.map(r => r.principal);
+    chart.data.datasets[1].data = yearly.map(r => r.interest);
+    chart.data.datasets[2].data = yearly.map(() => 0);
+    chart.data.datasets[2].hidden = true;
+  }
 
   chart.update('active');
 }
@@ -265,11 +271,11 @@ function initRateComparisonChart() {
   });
 }
 
-function updateRateComparisonChart(scenarios, periodsPerYear) {
+function updateRateComparisonChart(scenarios, periodsPerYear, termYears) {
   const chart = charts.rates;
 
-  // Use the longest schedule for labels
-  const maxYears = Math.max(...scenarios.map(s => Math.ceil(s.result.actualPeriods / periodsPerYear)));
+  // Use the loan term for the x-axis so all graphs stay in sync
+  const maxYears = termYears || Math.max(...scenarios.map(s => Math.ceil(s.result.actualPeriods / periodsPerYear)));
   const labels = Array.from({ length: maxYears }, (_, i) => `Yr ${i + 1}`);
   chart.data.labels = labels;
 

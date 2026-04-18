@@ -514,6 +514,18 @@ input[type="range"]::-moz-range-thumb {
 }
 .rate-pill--up   .rate-pill-diff { color: var(--red); }
 .rate-pill--down .rate-pill-diff { color: var(--green); }
+.rate-pill-bottom {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.rate-pill-label {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
 
 /* ── Down Payment Bar ──────────────────────────────────────────────────────── */
 .dp-impact-bar { display: flex; flex-direction: column; gap: 4px; }

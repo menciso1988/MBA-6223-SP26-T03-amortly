@@ -191,7 +191,10 @@ function updateRateComparisonPills() {
     pill.className = `rate-pill ${offset > 0 ? 'rate-pill--up' : 'rate-pill--down'}`;
     pill.innerHTML = `
       <span class="rate-pill-rate">${r.toFixed(2)}%</span>
-      <span class="rate-pill-diff">${diff > 0 ? '+' : ''}${fmt(diff)}/mo</span>
+      <div class="rate-pill-bottom">
+        <span class="rate-pill-diff">${diff > 0 ? '+' : ''}${fmt(diff)}/mo</span>
+        <span class="rate-pill-label">${offset < 0 ? 'payment reduced' : 'payment increase'}</span>
+      </div>
     `;
     container.appendChild(pill);
   });
@@ -412,7 +415,7 @@ function recalculate() {
   // ── Update Charts ──
   updateAmortizationChart(baseYearly, extraYearly);
   updateBalanceChart(baseYearly, extraYearly);
-  updateRateComparisonChart(rateScenarios, state.paymentPeriods);
+  updateRateComparisonChart(rateScenarios, state.paymentPeriods, state.termYears);
   updateMarketChart(marketData, base, extra);
 
   // ── URL hash ──
